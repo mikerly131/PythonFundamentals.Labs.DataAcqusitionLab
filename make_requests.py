@@ -23,10 +23,10 @@ req.add_header('token', token)
 with urllib.request.urlopen(req) as resp:
     data = json.loads(resp.read())
     count = data['metadata']['resultset']['count']
-    print(count)
 
+# Each call will get up to 1000 rows, so
 raw_calls = count / 1000
-api_calls = math.floor(raw_calls)
+api_calls = math.ceil(raw_calls)
 
 # Loop to make api calls write json files
 for call in range(0, api_calls):
@@ -40,6 +40,16 @@ for call in range(0, api_calls):
     req = urllib.request.Request(url=url)
     req.add_header('token', token)
 
+    # Call API and collect the data in json format from the api response
     with urllib.request.urlopen(req) as resp:
         data = json.loads(resp.read())
-        
+
+    # Write each group of 1000 records, or a call, to a file with incrementing call number
+    j_file = f'data/locations_{call}.json'
+    with open(j_file, 'w') as json_file:
+        json.dump(data, json_file)
+        json_file.close()
+
+    print(f'Created file for call {call}.')
+
+# This function takes a while to run
